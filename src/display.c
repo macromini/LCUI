@@ -207,8 +207,9 @@ static void SurfaceRecord_DumpRects(SurfaceRecord record, LinkedList *rects)
 
 	int i;
 	int max_dirty;
-	int layer_width = LCUIDisplay_GetWidth();
-	int layer_height = LCUIDisplay_GetHeight();
+	float scale = LCUIMetrics_GetScale();
+	int layer_width = LCUIDisplay_GetWidth() * scale;
+	int layer_height = LCUIDisplay_GetHeight() * scale;
 
 	LCUI_Rect rect;
 	LCUI_Rect *sub_rect;
