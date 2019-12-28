@@ -711,12 +711,7 @@ int Surface_GetHeight(LCUI_Surface surface)
 void Surface_Resize(LCUI_Surface surface, int w, int h)
 {
 	if (display.driver) {
-		LCUI_Rect rect;
 		display.driver->resize(surface, w, h);
-		rect.x = rect.y = 0;
-		rect.width = w;
-		rect.height = h;
-		LCUIDisplay_InvalidateArea(&rect);
 	}
 }
 
@@ -830,7 +825,6 @@ static void OnSurfaceEvent(LCUI_Widget w, LCUI_WidgetEvent e, void *arg)
 		if (sync_props) {
 			Surface_Resize(surface, area.width, area.height);
 		}
-		LCUIDisplay_InvalidateArea(&area);
 		break;
 	}
 	case LCUI_WEVENT_TITLE:
