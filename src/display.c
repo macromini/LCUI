@@ -864,10 +864,9 @@ static void OnResize(LCUI_Event e, void *arg)
 	widget = LCUIDisplay_GetBindWidget(dpy_ev->surface);
 	if (widget) {
 		Widget_Resize(widget, width, height);
+		widget->task.skip_surface_props_sync = TRUE;
 	}
 	LCUI_RunFrame();
-	Logger_Debug("[display] resize: (%d,%d)\n", dpy_ev->resize.width,
-		     dpy_ev->resize.height);
 }
 
 static void OnMinMaxInfo(LCUI_Event e, void *arg)

@@ -55,6 +55,7 @@ typedef struct LCUI_WidgetTaskDiffRec_ {
 
 	int invalid_box;
 	LCUI_BOOL can_render;
+	LCUI_BOOL sync_props_to_surface;
 	LCUI_BOOL should_add_invalid_area;
 } LCUI_WidgetTaskDiffRec, *LCUI_WidgetTaskDiff;
 
@@ -472,18 +473,6 @@ static void Widget_OnUpdatePadding(LCUI_Widget w)
 	Widget_ComputePaddingStyle(w);
 }
 
-static void Widget_SendResizeEvent(LCUI_Widget w)
-{
-	LCUI_WidgetEventRec e;
-
-	e.target = w;
-	e.data = NULL;
-	e.type = LCUI_WEVENT_RESIZE;
-	e.cancel_bubble = TRUE;
-	Widget_TriggerEvent(w, &e, NULL);
-	Widget_PostSurfaceEvent(w, LCUI_WEVENT_RESIZE, TRUE);
-}
-
 static void Widget_OnUpdateSize(LCUI_Widget w)
 {
 	int box_sizing;
@@ -672,6 +661,7 @@ static void Widget_BeginDiff(LCUI_Widget w, LCUI_WidgetTaskContext ctx)
 static int Widget_EndDiff(LCUI_Widget w, LCUI_WidgetTaskContext ctx)
 {
 	LCUI_RectF rect;
+	LCUI_WidgetEventRec e;
 	LCUI_BOOL widget_box_moved = FALSE;
 	const LCUI_WidgetTaskDiff diff = &ctx->diff;
 	const LCUI_WidgetStyle *style = &w->computed_style;
@@ -704,7 +694,9 @@ static int Widget_EndDiff(LCUI_Widget w, LCUI_WidgetTaskContext ctx)
 		if (w->parent) {
 			Widget_AddTask(w->parent, LCUI_WTASK_LAYOUT);
 		}
-		Widget_PostSurfaceEvent(w, LCUI_WEVENT_MOVE, TRUE);
+		Widget_PostSurfaceEvent(w, LCUI_WEVENT_MOVE,
+					!w->task.skip_surface_props_sync);
+		w->task.skip_surface_props_sync = TRUE;
 		widget_box_moved = TRUE;
 	} else if (MEMCMP(&diff->box.canvas, &w->box.canvas)) {
 		diff->invalid_box = SV_GRAPH_BOX;
@@ -713,9 +705,16 @@ static int Widget_EndDiff(LCUI_Widget w, LCUI_WidgetTaskContext ctx)
 
 	if (diff->box.border.width != w->box.border.width ||
 	    diff->box.border.height != w->box.border.height) {
-		diff->invalid_box = SV_GRAPH_BOX;
-		Widget_SendResizeEvent(w);
+		e.target = w;
+		e.data = NULL;
+		e.type = LCUI_WEVENT_RESIZE;
+		e.cancel_bubble = TRUE;
+		Widget_TriggerEvent(w, &e, NULL);
+		Widget_PostSurfaceEvent(w, LCUI_WEVENT_RESIZE,
+					!w->task.skip_surface_props_sync);
+		w->task.skip_surface_props_sync = TRUE;
 		Widget_AddTask(w, LCUI_WTASK_POSITION);
+		diff->invalid_box = SV_GRAPH_BOX;
 	}
 	if (diff->position != style->position) {
 		if (w->parent && style->position != SV_ABSOLUTE) {

@@ -88,7 +88,6 @@ typedef enum LCUI_WidgetTaskType {
 	LCUI_WTASK_BACKGROUND,
 	LCUI_WTASK_LAYOUT,
 	LCUI_WTASK_RESIZE,
-	LCUI_WTASK_RESIZE_WITH_SURFACE,
 	LCUI_WTASK_POSITION,
 	LCUI_WTASK_ZINDEX,
 	LCUI_WTASK_OPACITY,
@@ -105,9 +104,18 @@ typedef struct LCUI_WidgetBoxModelRec_ {
 } LCUI_WidgetBoxModelRec, *LCUI_WidgetBoxModel;
 
 typedef struct LCUI_WidgetTaskBoxRec_ {
-	LCUI_BOOL for_self;			/**< 标志，指示当前部件是否有待处理的任务 */
-	LCUI_BOOL for_children;			/**< 标志，指示是否有待处理的子级部件 */
-	LCUI_BOOL states[LCUI_WTASK_TOTAL_NUM];	/**< 各个任务的状态标记 */
+	/** update for self */
+
+	LCUI_BOOL for_self;
+
+	/** update for children */
+	LCUI_BOOL for_children;
+
+	/** skip the property synchronization of bound surface */
+	LCUI_BOOL skip_surface_props_sync;
+
+	/** states of tasks */
+	LCUI_BOOL states[LCUI_WTASK_TOTAL_NUM];
 } LCUI_WidgetTaskBoxRec;
 
 /** 部件状态 */
